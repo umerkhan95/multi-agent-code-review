@@ -59,24 +59,38 @@ export type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes];
  * @param fn - Async function to retry
  * @param maxRetries - Maximum number of retries (default: 3)
  * @param delayMs - Base delay in milliseconds (default: 1000)
+ * @param shouldRetry - Return false for non-transient errors; they are rethrown unchanged (default: retry all)
  * @returns The result of the successful function execution
  * @throws ReviewError with RETRY_EXHAUSTED code if all retries fail
  */
 export async function withRetry<T>(
   fn: () => Promise<T>,
   maxRetries: number = 3,
-  delayMs: number = 1000
+  delayMs: number = 1000,
+  shouldRetry: (error: unknown) => boolean = () => true
 ): Promise<T> {
-  // TODO: Implement retry logic with exponential backoff
-  // Hints:
-  // - Use a for loop from 1 to maxRetries
-  // - Use try/catch to catch errors
-  // - Calculate backoff: delayMs * Math.pow(2, attempt - 1)
-  // - Add jitter: Math.random() * 100
-  // - Use setTimeout wrapped in Promise for delay
-  // - Throw ReviewError with ErrorCodes.RETRY_EXHAUSTED if all retries fail
+  // maxRetries is the total number of attempts (loop 1..maxRetries), so fn runs at most maxRetries times
+  let lastError: unknown;
 
-  throw new Error('Not implemented');
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (!shouldRetry(error)) throw error;
+      lastError = error;
+      if (attempt < maxRetries) {
+        // Exponential backoff plus jitter to avoid a thundering herd
+        const backoffMs = delayMs * Math.pow(2, attempt - 1) + Math.random() * 100;
+        await new Promise<void>((resolve) => setTimeout(resolve, backoffMs));
+      }
+    }
+  }
+
+  throw new ReviewError(
+    `Operation failed after ${maxRetries} attempts: ${formatError(lastError)}`,
+    ErrorCodes.RETRY_EXHAUSTED,
+    { attempts: maxRetries, lastError: formatError(lastError) }
+  );
 }
 
 /**
@@ -96,14 +110,20 @@ export async function withTimeout<T>(
   timeoutMs: number,
   errorMessage: string = 'Operation timed out'
 ): Promise<T> {
-  // TODO: Implement timeout wrapper using Promise.race
-  // Hints:
-  // - Use Promise.race to race fn() against a timeout promise
-  // - The timeout promise should reject after timeoutMs milliseconds
-  // - Throw ReviewError with ErrorCodes.AGENT_TIMEOUT on timeout
-  // - Include timeoutMs in metadata
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new ReviewError(errorMessage, ErrorCodes.AGENT_TIMEOUT, { timeoutMs })),
+      timeoutMs
+    );
+  });
 
-  throw new Error('Not implemented');
+  try {
+    return await Promise.race([fn(), timeoutPromise]);
+  } finally {
+    // Clear the pending timer so it cannot keep the process alive
+    clearTimeout(timer);
+  }
 }
 
 /**
