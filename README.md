@@ -69,7 +69,6 @@ Checks (offline, no API calls):
 ```bash
 npm run build   # type-check and compile
 npm test        # unit tests: schemas, utilities, orchestrator with a mocked SDK, tool, verifier, skills
-npm run eval    # golden expectations (evals/) against the reports in reports/
 ```
 
 Sample reports for `udacity/cd14715-simple-todo-app` PRs 1 to 3 are in [`reports/`](reports/).

@@ -16,3 +16,4 @@ CLAUDE.md
 CLAUDE.local.md
 docs/
 .playwright-mcp/
+package-lock.json
