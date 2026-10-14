@@ -1,0 +1,57 @@
+[
+  {
+    "id": "pr1-clean-code-fixture",
+    "skills": ["typescript-patterns", "security-analysis"],
+    "query": "npm run dev -- udacity cd14715-simple-todo-app 1",
+    "files": ["fixtures/clean-code.ts"],
+    "expected_behavior": [
+      "Reviews exactly one code file: fixtures/clean-code.ts",
+      "Flags Math.random() in generateId as insecure randomness",
+      "Reports no SQL injection (the file builds no SQL strings)",
+      "Finds no existing test file and suggests tests for createUser, isValidEmail and sanitizeInput"
+    ],
+    "assertions": {
+      "files": ["fixtures/clean-code.ts"],
+      "mustFind": [{ "file": "fixtures/clean-code.ts", "pattern": "Math\\.random", "minSeverity": "medium" }],
+      "mustNotFind": [{ "file": "fixtures/clean-code.ts", "pattern": "SQL injection" }]
+    }
+  },
+  {
+    "id": "pr2-search-sql-injection",
+    "skills": ["typescript-patterns", "security-analysis"],
+    "query": "npm run dev -- udacity cd14715-simple-todo-app 2",
+    "files": ["src/todo.ts"],
+    "expected_behavior": [
+      "Detects the SQL injection in searchTodos (string-interpolated LIKE query) as critical",
+      "Detects the concatenated status query and the interpolated user query as critical",
+      "Finds the existing test file src/todo.test.ts in the remote repository",
+      "Suggests parameterized queries in the fix"
+    ],
+    "assertions": {
+      "files": ["src/todo.ts"],
+      "mustFind": [{ "file": "src/todo.ts", "pattern": "SQL injection", "minSeverity": "critical", "minCount": 3 }],
+      "testFiles": { "src/todo.ts": ["src/todo.test.ts"] }
+    }
+  },
+  {
+    "id": "pr3-premium-payment-data",
+    "skills": ["typescript-patterns", "security-analysis"],
+    "query": "npm run dev -- udacity cd14715-simple-todo-app 3",
+    "files": ["src/premium.ts"],
+    "expected_behavior": [
+      "Flags storing the full card number / CVV in plain text as critical",
+      "Does NOT report parameterized queries ($1, $2 placeholders) as a high/critical SQL injection (missing validation as medium is fine)",
+      "Does NOT rate storing only the last 4 card digits as critical",
+      "Does NOT invent code that is not in the file (e.g. a 'new Dattier' syntax error) and does not flag the multi-line signature of processPremiumPayment as missing a return type"
+    ],
+    "assertions": {
+      "files": ["src/premium.ts"],
+      "mustFind": [{ "file": "src/premium.ts", "pattern": "card|CVV|cvv", "minSeverity": "critical" }],
+      "mustNotFind": [
+        { "file": "src/premium.ts", "pattern": "SQL injection", "minSeverity": "high" },
+        { "file": "src/premium.ts", "pattern": "Dattier|syntax error" },
+        { "file": "src/premium.ts", "pattern": "Missing explicit return type on exported async function processPremiumPayment" }
+      ]
+    }
+  }
+]
