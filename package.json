@@ -1,19 +1,20 @@
 {
-  "name": "claude-multiagent-code-review-starter",
+  "name": "multi-agent-code-review",
   "version": "1.0.0",
-  "description": "Starter project for building a multi-agent code review system using Claude Agent SDK",
+  "description": "Multi-agent GitHub pull request reviewer built on the Claude Agent SDK, MCP and Zod",
   "type": "module",
   "main": "dist/main.js",
   "module": "dist/main.js",
   "exports": {
     ".": "./dist/main.js"
   },
-  "author": "Udacity",
+  "author": "Umer Khan (built on the Udacity cd14715 starter)",
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/main.ts",
     "start": "node dist/main.js",
-    "test": "vitest run",
+    "test": "vitest run --exclude tests/report-evals.test.ts",
+    "eval": "vitest run tests/report-evals.test.ts",
     "test:watch": "vitest",
     "lint": "tsc --noEmit"
   },
@@ -24,9 +25,9 @@
     "multi-agent",
     "ai"
   ],
-  "license": "ISC",
+  "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.1.55",
+    "@anthropic-ai/claude-agent-sdk": "^0.1.77",
     "@modelcontextprotocol/sdk": "^1.23.0",
     "dotenv": "^16.0.0",
     "winston": "^3.11.0",
@@ -45,5 +46,9 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/umerkhan95/multi-agent-code-review.git"
   }
 }

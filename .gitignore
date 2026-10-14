@@ -9,4 +9,10 @@ logs/
 coverage/
 *.tsbuildinfo
 .temp/
-reports/
+.claude/settings.local.json
+
+# Local assistant/dev notes (not part of the project)
+CLAUDE.md
+CLAUDE.local.md
+docs/
+.playwright-mcp/
